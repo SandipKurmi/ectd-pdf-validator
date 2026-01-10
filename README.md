@@ -56,7 +56,7 @@ pip install -r requirements.txt
 ### Development Mode
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Or directly with Python:
@@ -165,52 +165,52 @@ with open("study_report.pdf", "rb") as f:
 
 ## Validation Rules (14 Rules - 100% eCTD Coverage)
 
-| Rule ID | Rule Name | eCTD Criteria | Description |
-|---------|-----------|---------------|-------------|
-| PDF_001 | PDF Version & Prohibited Content | 1-5 | PDF 1.4-1.7, no JavaScript, multimedia, 3D, attachments |
-| PDF_002 | Document Integrity | 7-8 | Readable, text searchable |
-| PDF_003 | Security Settings | 9 | No password protection or security restrictions |
-| PDF_004 | Fast Web View | 10 | PDF must be linearized |
-| PDF_005 | Bookmarks Integrity | 16-17 | No broken, external, or non-relative bookmarks |
-| PDF_006 | Hyperlinks Compliance | 12, 18-20 | No broken, external, multiple-action, or non-relative links |
-| PDF_007 | Initial View & Layout | 13-15 | Correct PageMode, layout, and magnification |
-| PDF_008 | Zoom Inheritance | 11 | All destinations use Inherit Zoom |
-| PDF_009 | Font Embedding | 21 | All non-standard fonts embedded |
-| PDF_010 | Page Size | 22 | 8.5" x 11" (US Letter) |
-| PDF_011 | Page Margins | 23 | Minimum 0.75" left margin |
-| PDF_012 | Annotations | 6 | No prohibited annotations (only Link allowed) |
-| PDF_013 | Image-Based Content | 24 | Avoid scanned/image-based PDFs |
-| PDF_014 | File Naming | 25 | Lowercase, hyphens/underscores only |
+| Rule ID | Rule Name                        | eCTD Criteria | Description                                                 |
+| ------- | -------------------------------- | ------------- | ----------------------------------------------------------- |
+| PDF_001 | PDF Version & Prohibited Content | 1-5           | PDF 1.4-1.7, no JavaScript, multimedia, 3D, attachments     |
+| PDF_002 | Document Integrity               | 7-8           | Readable, text searchable                                   |
+| PDF_003 | Security Settings                | 9             | No password protection or security restrictions             |
+| PDF_004 | Fast Web View                    | 10            | PDF must be linearized                                      |
+| PDF_005 | Bookmarks Integrity              | 16-17         | No broken, external, or non-relative bookmarks              |
+| PDF_006 | Hyperlinks Compliance            | 12, 18-20     | No broken, external, multiple-action, or non-relative links |
+| PDF_007 | Initial View & Layout            | 13-15         | Correct PageMode, layout, and magnification                 |
+| PDF_008 | Zoom Inheritance                 | 11            | All destinations use Inherit Zoom                           |
+| PDF_009 | Font Embedding                   | 21            | All non-standard fonts embedded                             |
+| PDF_010 | Page Size                        | 22            | 8.5" x 11" (US Letter)                                      |
+| PDF_011 | Page Margins                     | 23            | Minimum 0.75" left margin                                   |
+| PDF_012 | Annotations                      | 6             | No prohibited annotations (only Link allowed)               |
+| PDF_013 | Image-Based Content              | 24            | Avoid scanned/image-based PDFs                              |
+| PDF_014 | File Naming                      | 25            | Lowercase, hyphens/underscores only                         |
 
 ## eCTD Criteria Coverage Matrix
 
-| eCTD Criteria # | Description | Rule |
-|-----------------|-------------|------|
-| 1 | PDF Version 1.4-1.7, PDF/A-1, PDF/A-2 | PDF_001 |
-| 2 | No JavaScript | PDF_001 |
-| 3 | No dynamic content (multimedia) | PDF_001 |
-| 4 | No attachments | PDF_001 |
-| 5 | No 3D content | PDF_001 |
-| 6 | No PDF annotations | PDF_012 |
-| 7 | File readable (not corrupted) | PDF_002 |
-| 8 | Text searchable | PDF_002 |
-| 9 | No password/security | PDF_003 |
-| 10 | Fast Web View (linearized) | PDF_004 |
-| 11 | Inherit Zoom | PDF_008 |
-| 12 | No broken links | PDF_006 |
-| 13 | Bookmark Panel & Page | PDF_007 |
-| 14 | Page Layout = Default | PDF_007 |
-| 15 | Magnification = Default | PDF_007 |
-| 16 | No external bookmarks | PDF_005 |
-| 17 | No non-relative bookmarks | PDF_005 |
-| 18 | No external hyperlinks | PDF_006 |
-| 19 | No multiple action links | PDF_006 |
-| 20 | No non-relative hyperlinks | PDF_006 |
-| 21 | Fonts embedded | PDF_009 |
-| 22 | Page size 8.5" x 11" | PDF_010 |
-| 23 | Left margin >= 0.75" | PDF_011 |
-| 24 | Avoid image-based PDFs | PDF_013 |
-| 25 | File naming conventions | PDF_014 |
+| eCTD Criteria # | Description                           | Rule    |
+| --------------- | ------------------------------------- | ------- |
+| 1               | PDF Version 1.4-1.7, PDF/A-1, PDF/A-2 | PDF_001 |
+| 2               | No JavaScript                         | PDF_001 |
+| 3               | No dynamic content (multimedia)       | PDF_001 |
+| 4               | No attachments                        | PDF_001 |
+| 5               | No 3D content                         | PDF_001 |
+| 6               | No PDF annotations                    | PDF_012 |
+| 7               | File readable (not corrupted)         | PDF_002 |
+| 8               | Text searchable                       | PDF_002 |
+| 9               | No password/security                  | PDF_003 |
+| 10              | Fast Web View (linearized)            | PDF_004 |
+| 11              | Inherit Zoom                          | PDF_008 |
+| 12              | No broken links                       | PDF_006 |
+| 13              | Bookmark Panel & Page                 | PDF_007 |
+| 14              | Page Layout = Default                 | PDF_007 |
+| 15              | Magnification = Default               | PDF_007 |
+| 16              | No external bookmarks                 | PDF_005 |
+| 17              | No non-relative bookmarks             | PDF_005 |
+| 18              | No external hyperlinks                | PDF_006 |
+| 19              | No multiple action links              | PDF_006 |
+| 20              | No non-relative hyperlinks            | PDF_006 |
+| 21              | Fonts embedded                        | PDF_009 |
+| 22              | Page size 8.5" x 11"                  | PDF_010 |
+| 23              | Left margin >= 0.75"                  | PDF_011 |
+| 24              | Avoid image-based PDFs                | PDF_013 |
+| 25              | File naming conventions               | PDF_014 |
 
 ## Status Values
 
