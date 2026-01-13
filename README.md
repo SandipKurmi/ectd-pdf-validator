@@ -73,6 +73,24 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 The service will be available at `http://localhost:8000`
 
+### Docker Support
+
+You can also run the application using Docker.
+
+**Start the application:**
+
+```bash
+docker-compose up -d --build
+```
+
+**Stop the application:**
+
+```bash
+docker-compose down
+```
+
+The application will be running at `http://localhost:8000`.
+
 ## API Documentation
 
 Once the service is running, access the interactive API documentation:
