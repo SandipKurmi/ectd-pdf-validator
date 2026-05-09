@@ -15,6 +15,7 @@ class ValidationStatus(str, Enum):
     PASS = "PASS"
     FAIL = "FAIL"
     WARNING = "WARNING"
+    INFORMATION = "INFORMATION"
 
 
 class OverallStatus(str, Enum):
@@ -56,6 +57,7 @@ class ValidationSummary(BaseModel):
     passed: int = Field(..., description="Number of passed rules")
     failed: int = Field(..., description="Number of failed rules")
     warnings: int = Field(..., description="Number of warnings")
+    information: int = Field(..., description="Number of informational rules")
 
     class Config:
         populate_by_name = True

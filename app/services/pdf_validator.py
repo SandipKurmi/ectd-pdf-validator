@@ -179,26 +179,36 @@ class PDFValidator:
         """
         results: List[RuleResult] = []
 
-        # Define all 14 validation rules in order for 100% eCTD compliance
+        # Define all 14 validation rules in order for 100% eCTD compliance.
+        # The 4th tuple field is the rule's severity classification: a FAIL
+        # returned by a rule classified as "warning" is downgraded to WARNING,
+        # and a FAIL from an "information"-classified rule is downgraded to
+        # INFORMATION. Only "invalid"-classified rules can produce FAIL and
+        # therefore drive overallStatus.
         rules = [
-            ("PDF_001", "PDF Version & Prohibited Content", self._check_pdf_version_and_content),
-            ("PDF_002", "Document Integrity", self._check_document_integrity),
-            ("PDF_003", "Security Settings", self._check_security_settings),
-            ("PDF_004", "Fast Web View", self._check_fast_web_view),
-            ("PDF_005", "Bookmarks Integrity", self._check_bookmarks_integrity),
-            ("PDF_006", "Hyperlinks Compliance", self._check_hyperlinks_compliance),
-            ("PDF_007", "Initial View & Layout", self._check_initial_view_and_layout),
-            ("PDF_008", "Zoom Inheritance", self._check_zoom_inheritance),
-            ("PDF_009", "Font Embedding", self._check_font_embedding),
-            ("PDF_010", "Page Size", self._check_page_size),
-            ("PDF_011", "Page Margins", self._check_page_margins),
-            ("PDF_012", "Annotations", self._check_annotations),
-            ("PDF_013", "Image-Based Content", self._check_image_based_content),
-            ("PDF_014", "File Naming", self._check_file_naming),
+            ("PDF_001", "PDF Version & Prohibited Content", self._check_pdf_version_and_content, "warning"),
+            ("PDF_002", "Document Integrity", self._check_document_integrity, "invalid"),
+            ("PDF_003", "Security Settings", self._check_security_settings, "invalid"),
+            ("PDF_004", "Fast Web View", self._check_fast_web_view, "invalid"),
+            ("PDF_005", "Bookmarks Integrity", self._check_bookmarks_integrity, "invalid"),
+            ("PDF_006", "Hyperlinks Compliance", self._check_hyperlinks_compliance, "invalid"),
+            ("PDF_007", "Initial View & Layout", self._check_initial_view_and_layout, "invalid"),
+            ("PDF_008", "Zoom Inheritance", self._check_zoom_inheritance, "invalid"),
+            ("PDF_009", "Font Embedding", self._check_font_embedding, "information"),
+            ("PDF_010", "Page Size", self._check_page_size, "information"),
+            ("PDF_011", "Page Margins", self._check_page_margins, "information"),
+            ("PDF_012", "Annotations", self._check_annotations, "warning"),
+            ("PDF_013", "Image-Based Content", self._check_image_based_content, "invalid"),
+            ("PDF_014", "File Naming", self._check_file_naming, "invalid"),
         ]
 
-        for rule_id, rule_name, validator in rules:
+        for rule_id, rule_name, validator, classification in rules:
             status, message = validator()
+            if status == ValidationStatus.FAIL:
+                if classification == "warning":
+                    status = ValidationStatus.WARNING
+                elif classification == "information":
+                    status = ValidationStatus.INFORMATION
             results.append(RuleResult(
                 ruleId=rule_id,
                 ruleName=rule_name,
@@ -210,6 +220,7 @@ class PDFValidator:
         passed = sum(1 for r in results if r.status == ValidationStatus.PASS)
         failed = sum(1 for r in results if r.status == ValidationStatus.FAIL)
         warnings = sum(1 for r in results if r.status == ValidationStatus.WARNING)
+        information = sum(1 for r in results if r.status == ValidationStatus.INFORMATION)
 
         overall_status = OverallStatus.FAIL if failed > 0 else OverallStatus.PASS
 
@@ -220,7 +231,8 @@ class PDFValidator:
                 totalRules=len(results),
                 passed=passed,
                 failed=failed,
-                warnings=warnings
+                warnings=warnings,
+                information=information
             ),
             results=results
         )
@@ -539,11 +551,11 @@ class PDFValidator:
         """
         PDF_006: Check hyperlinks for eCTD compliance.
 
-        Checks:
-        - No broken links (pointing to invalid pages)
+        Checks (internal LINK_GOTO references are intentionally not validated):
         - No external hyperlinks (web URLs, email links)
         - No multiple-action links (action chains with /Next)
-        - No non-relative hyperlinks (absolute file paths)
+        - No external file links (GoToR) or launch actions
+        - No named destinations that resolve to external targets
 
         Returns:
             Tuple of (status, message)
@@ -554,7 +566,6 @@ class PDFValidator:
 
         try:
             external_links = []
-            broken_links = []
             multi_action_links = []
             total_links = 0
 
@@ -572,12 +583,6 @@ class PDFValidator:
                         uri = link.get("uri", "")
                         if uri.startswith(("http://", "https://", "mailto:", "ftp://", "file://")):
                             external_links.append(f"{page_ref}: {uri[:40]}...")
-
-                    # Check for broken internal links
-                    elif link_type == fitz.LINK_GOTO:
-                        target_page = link.get("page", -1)
-                        if target_page < 0 or target_page >= len(doc):
-                            broken_links.append(f"{page_ref}: link to invalid page {target_page + 1}")
 
                     # Check for external file links (GoToR)
                     elif link_type == fitz.LINK_GOTOR:
@@ -601,21 +606,19 @@ class PDFValidator:
 
             # Compile issues
             issues = []
-            if broken_links:
-                issues.append(f"{len(broken_links)} broken link(s)")
             if external_links:
                 issues.append(f"{len(external_links)} external link(s)")
             if multi_action_links:
                 issues.append(f"Multiple-action links detected")
 
             if issues:
-                examples = (broken_links[:2] + external_links[:2])[:3]
+                examples = external_links[:3]
                 return ValidationStatus.FAIL, f"Hyperlink issues: {'; '.join(issues)}. Examples: {'; '.join(examples)}"
 
             if total_links == 0:
                 return ValidationStatus.PASS, "PDF contains no hyperlinks"
 
-            return ValidationStatus.PASS, f"All {total_links} hyperlink(s) are valid internal references"
+            return ValidationStatus.PASS, f"All {total_links} hyperlink(s) are compliant (no external or multi-action links)"
 
         except Exception as e:
             return ValidationStatus.FAIL, f"Error checking hyperlinks: {str(e)}"
@@ -1107,8 +1110,8 @@ class PDFValidator:
 
         eCTD requirements:
         - Lowercase characters only
-        - Only alphanumeric, hyphens (-), and underscores (_) allowed
-        - No spaces or special characters
+        - Only lowercase letters (a-z), digits (0-9), and underscores (_) allowed
+        - No spaces, hyphens, or special characters
 
         Returns:
             Tuple of (status, message)
@@ -1129,10 +1132,10 @@ class PDFValidator:
             if ' ' in name_without_ext:
                 issues.append("contains spaces")
 
-            # Check for invalid characters (only allow lowercase letters, numbers, hyphens, underscores)
-            valid_pattern = re.compile(r'^[a-z0-9_-]+$')
+            # Check for invalid characters (only allow lowercase letters, numbers, underscores)
+            valid_pattern = re.compile(r'^[a-z0-9_]+$')
             if not valid_pattern.match(name_without_ext.lower()):
-                invalid_chars = set(re.findall(r'[^a-z0-9_-]', name_without_ext.lower()))
+                invalid_chars = set(re.findall(r'[^a-z0-9_]', name_without_ext.lower()))
                 if invalid_chars:
                     char_display = ', '.join(repr(c) for c in sorted(invalid_chars))
                     issues.append(f"contains invalid characters: {char_display}")
