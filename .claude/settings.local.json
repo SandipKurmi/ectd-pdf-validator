@@ -3,7 +3,10 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(source venv/bin/activate)",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(venv/bin/python /tmp/diagnose_pdfs.py)",
+      "Bash(tee /tmp/diagnose_out.txt)",
+      "Bash(venv/bin/python *)"
     ]
   }
 }

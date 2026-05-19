@@ -1110,8 +1110,8 @@ class PDFValidator:
 
         eCTD requirements:
         - Lowercase characters only
-        - Only lowercase letters (a-z), digits (0-9), and underscores (_) allowed
-        - No spaces, hyphens, or special characters
+        - Only lowercase letters (a-z), digits (0-9), underscores (_), and hyphens (-) allowed
+        - No spaces, uppercase letters, or special characters
 
         Returns:
             Tuple of (status, message)
@@ -1132,10 +1132,10 @@ class PDFValidator:
             if ' ' in name_without_ext:
                 issues.append("contains spaces")
 
-            # Check for invalid characters (only allow lowercase letters, numbers, underscores)
-            valid_pattern = re.compile(r'^[a-z0-9_]+$')
+            # Check for invalid characters (only allow lowercase letters, numbers, underscores, hyphens)
+            valid_pattern = re.compile(r'^[a-z0-9_-]+$')
             if not valid_pattern.match(name_without_ext.lower()):
-                invalid_chars = set(re.findall(r'[^a-z0-9_]', name_without_ext.lower()))
+                invalid_chars = set(re.findall(r'[^a-z0-9_-]', name_without_ext.lower()))
                 if invalid_chars:
                     char_display = ', '.join(repr(c) for c in sorted(invalid_chars))
                     issues.append(f"contains invalid characters: {char_display}")
